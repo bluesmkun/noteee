@@ -17,15 +17,13 @@ const VARIANTS: Record<BadgeVariant, string> = {
 export function Badge({
   className,
   variant = "primary",
-  stamp = false,
   ...props
-}: React.ComponentProps<"span"> & { variant?: BadgeVariant; stamp?: boolean }) {
+}: React.ComponentProps<"span"> & { variant?: BadgeVariant }) {
   return (
     <span
       className={cn(
         "inline-flex w-fit shrink-0 items-center justify-center gap-1 rounded-[3px] border px-2 py-0.5 text-xs font-medium whitespace-nowrap",
         VARIANTS[variant],
-        stamp && "stamp",
         className,
       )}
       {...props}

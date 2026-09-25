@@ -419,17 +419,6 @@
     box-shadow: 0 1px 0 0 var(--edge);
   }
 
-  /* —— 印章：状态标签 —— */
-  .stamp {
-    border-width: 1.5px;
-    border-style: solid;
-    border-radius: 3px;
-    font-family: var(--font-serif);
-    letter-spacing: 0.08em;
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, currentColor 14%, transparent);
-    transform: rotate(-1.4deg);
-  }
-
   /* 地图亮点不描边、不发光：`drop-shadow` 也是一次高斯模糊，
      而且要给近千个点阵算一遍。靠颜色和大小区分就够了。 */
   .map-dot {

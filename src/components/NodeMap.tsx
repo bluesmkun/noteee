@@ -96,7 +96,7 @@ export function NodeMap({
 
   return (
     <div className={cn("rise paper relative flex flex-col overflow-hidden rounded-xl border p-3.5 pt-4", className)}>
-      <span className="tape pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 rotate-1 rounded-[1px]" />
+      <span className="tape pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 rounded-[1px]" />
       <div className="relative flex items-center gap-2">
         <SectionTitle icon={Globe}>节点分布</SectionTitle>
         <span className="ink ml-auto text-[10px] text-muted-foreground">

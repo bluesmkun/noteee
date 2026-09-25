@@ -63,8 +63,8 @@ export function NodeCard({
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onOpen())}
       className="page-turn cv-card rise group relative min-w-0 cursor-pointer gap-0 overflow-hidden p-4 pt-5 hover:border-primary/45 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40"
     >
-      {/* 贴在纸上的胶带 */}
-      <span className="tape pointer-events-none absolute -top-2 left-6 h-3.5 w-14 -rotate-2 rounded-[1px]" />
+      {/* 贴在纸上的胶带。摆正的，不斜 —— 斜着的装饰和卡片里其他元素对不齐 */}
+      <span className="tape pointer-events-none absolute -top-2 left-6 h-3.5 w-14 rounded-[1px]" />
 
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-baseline gap-1.5">

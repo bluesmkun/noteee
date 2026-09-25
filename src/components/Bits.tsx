@@ -76,13 +76,13 @@ export function StatusDot({ node, className }: { node: Node; className?: string 
   )
 }
 
-/** 在线状态做成盖章的样子：这是本子上最像「记录」的一个元素 */
+/** 在线状态。和旁边的 agent 版本号一样是普通标签：不斜、不盖章，
+ *  与标题行其他元素严格平行对齐 */
 export function StatusPill({ node, className }: { node: Node; className?: string }) {
   const status = statusOf(node)
   return (
     <Badge
       variant={status === "online" ? "ok" : status === "offline" ? "danger" : "muted"}
-      stamp
       className={cn("py-1 font-normal", className)}
     >
       <StatusDot node={node} />

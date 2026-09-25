@@ -46,7 +46,7 @@ function Tile({
     // （最矮的「平均延迟」和最高的「实时网速」差 50px）。
     // lg 起交回给 auto-rows-fr，卡片恢复按内容高度，不会平白多出空白。
     <div className="rise paper relative flex h-full min-h-[10rem] flex-col overflow-hidden rounded-xl border p-3.5 pt-4 lg:min-h-0">
-      <span className="tape pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 rotate-1 rounded-[1px]" />
+      <span className="tape pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 rounded-[1px]" />
       {/* 窄屏卡片窄，居中排更整齐；sm 起恢复左对齐（与节点卡一致） */}
       <div className="relative flex shrink-0 items-center justify-center gap-2 text-muted-foreground sm:justify-start">
         <span className={cn("grid size-6 shrink-0 place-items-center rounded-[3px] border", BUBBLE[tone])}>

@@ -129,7 +129,6 @@ function Footer({ nodes, updatedAt }: { nodes: Node[] | null; updatedAt: number 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-dashed border-border pt-3 text-[11px] text-muted-foreground">
         <span className="label-caps text-[10px] text-foreground/70">noteee</span>
         <span className="ink">v{VERSION}</span>
-        <span className="hidden h-px flex-1 border-t border-dashed border-border/70 sm:block" />
         <span className="ink">
           共 {list.length} 个节点 · {online} 在线
           {offline > 0 && ` · ${offline} 离线`}

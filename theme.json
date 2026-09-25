@@ -2,7 +2,7 @@
   "name": "noteee",
   "short": "noteee",
   "description": "复古笔记本状态页主题：米黄格纸配墨绿墨水，卡片 / 列表双视图，硬件占用、流量、延迟、到期与费用一页尽览",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": "bluesmkun",
   "url": "https://github.com/bluesmkun/noteee",
   "config": [

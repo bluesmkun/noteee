@@ -239,12 +239,29 @@
   --color-heat-muted: var(--heat-muted);
   --color-rule: var(--rule);
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Hiragino Sans GB",
-    "Microsoft YaHei", sans-serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "HarmonyOS Sans SC", "MiSans",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   /* 标题用宋体，像铅字印刷；数字用等宽，像打字机 */
   --font-serif: "Songti SC", "Source Han Serif SC", "Noto Serif SC", "SimSun", Georgia,
     "Times New Roman", serif;
   --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+}
+
+/**
+ * 手机端的字体。
+ *
+ * 小字号下宋体的笔画会发虚（尤其是安卓上的 Noto Serif CJK），等宽数字也偏窄偏旧，
+ * 整页看着不利落。窄屏统一换成系统无衬线 + **等宽数字**（tabular-nums）：
+ * 既清晰，数字仍然逐位对齐，任何依赖等宽的对齐都不会散。
+ * 宽屏保留宋体标题与等宽数字的「铅字 + 打字机」味道。
+ *
+ * 这两条写在 @layer 外面：非分层样式优先级高于 Tailwind 的 theme 层，不用比顺序。
+ */
+@media (max-width: 639px) {
+  :root {
+    --font-serif: var(--font-sans);
+    --font-mono: var(--font-sans);
+  }
 }
 
 @layer base {

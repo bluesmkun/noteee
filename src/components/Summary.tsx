@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import { Activity, ArrowDown, ArrowDownUp, ArrowUp, Database, Wallet } from "lucide-react"
 
-import { CARD_GRID, type IconType } from "@/components/Bits"
+import { type IconType } from "@/components/Bits"
 import { NodeMap } from "@/components/NodeMap"
 import { speedHistory, type Latency, type LatencyMap, type Node } from "@/lib/api"
 import { bytes, money, percent, rate } from "@/lib/format"
@@ -18,10 +18,17 @@ const BUBBLE: Record<TileTone, string> = {
 }
 
 /**
+ * 概览卡在**手机上排 2 列**（4 张卡一屏看完），节点卡仍是 1 列 ——
+ * 手机上卡片只有 170px 上下宽，节点卡那套信息塞不进两列。
+ * sm 起两边完全一致（2 / 3 / 4 列），列边界仍然严格对齐。
+ */
+const SUMMARY_GRID = "grid gap-3 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+
+/**
  * 概览卡。三件事必须一起成立，否则卡片就会「一块大一块小」：
  *   1. 卡片自己 h-full + flex-col —— 多出来的高度变成留白，而不是把卡片撑得参差不齐
- *   2. 栅格 auto-rows-fr —— 所有行等高
- *   3. 栅格与节点卡共用 CARD_GRID —— 上下两组的列边界严格对齐
+ *   2. lg 起靠栅格 auto-rows-fr 等高；窄屏靠 min-h 等高（那时地图整行铺满，不能开 auto-rows-fr）
+ *   3. sm 起与节点卡共用列宽 —— 上下两组的列边界严格对齐
  */
 function Tile({
   icon: Icon,
@@ -38,24 +45,32 @@ function Tile({
     // min-h 只在窄屏起作用：那时没有 auto-rows-fr，靠它让四张卡等高
     // （最矮的「平均延迟」和最高的「实时网速」差 50px）。
     // lg 起交回给 auto-rows-fr，卡片恢复按内容高度，不会平白多出空白。
-    <div className="rise paper relative flex h-full min-h-[9.5rem] flex-col overflow-hidden rounded-xl border p-3.5 pt-4 lg:min-h-0">
+    <div className="rise paper relative flex h-full min-h-[10rem] flex-col overflow-hidden rounded-xl border p-3.5 pt-4 lg:min-h-0">
       <span className="tape pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 rotate-1 rounded-[1px]" />
-      <div className="relative flex shrink-0 items-center gap-2 text-muted-foreground">
+      {/* 窄屏卡片窄，居中排更整齐；sm 起恢复左对齐（与节点卡一致） */}
+      <div className="relative flex shrink-0 items-center justify-center gap-2 text-muted-foreground sm:justify-start">
         <span className={cn("grid size-6 shrink-0 place-items-center rounded-[3px] border", BUBBLE[tone])}>
           <Icon className="size-3.5" />
         </span>
         <span className="label-caps text-[10px]">{label}</span>
       </div>
-      <div className="relative flex min-h-0 flex-1 flex-col justify-center gap-1 pt-1">{children}</div>
+      <div className="relative flex min-h-0 flex-1 flex-col items-center justify-center gap-1 pt-1 text-center sm:items-stretch sm:text-left">
+        {children}
+      </div>
     </div>
   )
 }
 
-/** 上下行。用两列等宽栅格而不是居中排：两列的起点固定，↓ 和 ↑ 的数值才对齐，
- *  也和上面那行大数字左对齐（居中排会和左对齐的数字错开） */
+/** 上下行。宽屏用两列等宽栅格（两列起点固定，↓ 和 ↑ 的数值才对齐，
+ *  也和上面那行大数字左对齐）；窄屏卡片只有 170px，一行塞不下两段，改成上下两行居中 */
 function Flow({ down, up, className }: { down: string; up: string; className?: string }) {
   return (
-    <div className={cn("ink grid grid-cols-2 gap-x-3", className)}>
+    <div
+      className={cn(
+        "ink grid justify-items-center gap-x-3 sm:grid-cols-2 sm:justify-items-stretch",
+        className,
+      )}
+    >
       <span className="inline-flex min-w-0 items-center gap-1">
         <ArrowDown className="size-3 shrink-0 text-info" />
         <span className="truncate">{down}</span>
@@ -127,9 +142,9 @@ export function Summary({
 
   return (
     // auto-rows-fr 只在 lg 起用：那时地图钉在右侧、纵向跨两行，需要各行等高才不会「一块大一块小」。
-    // 窄屏（1~2 列）地图是整行铺满、自己占一行，一旦也开 auto-rows-fr，
+    // 窄屏（2 列）地图是整行铺满、自己占一行，一旦也开 auto-rows-fr，
     // 地图那一行的高度（244px）会把 4 张概览卡一起拉成 244 —— 手机上一屏只看得下两张半。
-    <div className={cn(CARD_GRID, "lg:auto-rows-fr")}>
+    <div className={cn(SUMMARY_GRID, "lg:auto-rows-fr")}>
       <Tile icon={Database} label="本月流量" tone="primary">
         <div className="ink text-xl font-semibold">
           {nodes.length > 0 ? bytes(monthTotal) : "—"}
@@ -147,17 +162,6 @@ export function Summary({
         <div className="ink truncate text-[11px] text-muted-foreground">
           {nodes.length === 0 ? "还没有节点" : `本月 ↓ ${bytes(monthRx)} · ↑ ${bytes(monthTx)}`}
         </div>
-        {monthPct !== null && (
-          <div className="track h-2 w-full overflow-hidden rounded-[2px] border">
-            <div
-              className={cn(
-                "h-full origin-left transition-transform duration-700",
-                monthPct >= 90 ? "bar-danger" : "bar-net",
-              )}
-              style={{ transform: `scaleX(${monthPct / 100})` }}
-            />
-          </div>
-        )}
         <div className="ink truncate text-[10px] text-muted-foreground/80">
           今日 ↓ {bytes(dayRx)} · ↑ {bytes(dayTx)}
         </div>
@@ -168,7 +172,7 @@ export function Summary({
         <Flow down={rate(now.rx)} up={rate(now.tx)} className="text-[11px]" />
         {/* 固定高度：给 flex-1 + h-full 的话，SVG 会按 viewBox 比例（100:24）撑出
             78px 的固有高度，把整行顶到 190px，概览卡和地图卡都跟着虚胖 */}
-        <div className="flex h-10 shrink-0 items-end">
+        <div className="flex h-7 w-full shrink-0 items-end sm:h-10">
           <Spark
             series={[
               { values: speedHistory.map((s) => s.rx), className: "text-info" },

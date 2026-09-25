@@ -92,13 +92,14 @@ export function NodeRow({
           </div>
         </div>
 
-        {/* 资源：CPU / 内存 / 硬盘 三行，每行都带真实明细（核数、负载、已用 / 总量） */}
+        {/* 资源：CPU / 内存 / 硬盘 三行，每行都带真实明细（核数、负载、已用 / 总量）。
+            离线时没有实时数据，就退回静态总量 —— 三行的列结构必须完全一致 */}
         <div className="min-w-0 space-y-1">
           <MeterRow
             label="CPU"
             tone="cpu"
             pct={m ? m.cpu : null}
-            detail={m ? `${node.cpu_cores || "?"} 核 · 负载 ${m.load[0].toFixed(2)}` : undefined}
+            detail={m ? `${node.cpu_cores || "?"} 核 · 负载 ${m.load[0].toFixed(2)}` : `${node.cpu_cores || "?"} 核`}
           />
           <MeterRow
             label="内存"

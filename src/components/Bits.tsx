@@ -270,14 +270,15 @@ export function MeterRow({
       >
         {pct === null ? "—" : `${filled.toFixed(0)}%`}
       </span>
-      {detail !== undefined && (
-        <span
-          className="ink w-[6.75rem] shrink-0 truncate text-right text-[10px] text-muted-foreground"
-          title={detail}
-        >
-          {detail}
-        </span>
-      )}
+      {/* 明细列**永远渲染**，哪怕内容是空的。
+          以前写成 `detail !== undefined &&`：离线节点没有明细时这一列整个消失，
+          进度条（flex-1）把空位撑开，百分比就被推到右边，和下面两行对不上。 */}
+      <span
+        className="ink w-[6.75rem] shrink-0 truncate text-right text-[10px] text-muted-foreground"
+        title={detail}
+      >
+        {detail}
+      </span>
     </div>
   )
 }

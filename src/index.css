@@ -432,6 +432,14 @@
     contain-intrinsic-size: 76px;
   }
 
+  /* 手机上是「节点一行 + 硬件三行」的堆叠版，行高 118px，得跟着改，
+     否则滚动时行会先按 76px 占位再跳回 */
+  @media (max-width: 639px) {
+    .cv-row {
+      contain-intrinsic-size: 118px;
+    }
+  }
+
   .page-turn {
     transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
   }

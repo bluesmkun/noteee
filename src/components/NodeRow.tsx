@@ -20,14 +20,19 @@ import { monthUsage } from "@/lib/view"
  * 列对齐就是构造性成立的**，不需要靠「固定宽度 + flex-1 吸收余量」去凑。
  * 被 hidden 掉的格子不占位，所以每一档断点的列数都能和实际可见的格子数对上：
  *
- *   base 2 列（节点 / 资源）→ md 3 列（+延迟）→ lg 5 列（+流量 +网络）→ xl 6 列（+到期费用）
+ *   base 1 列（节点在上、硬件在下）→ sm 2 列 → md 3 列（+延迟）
+ *   → lg 5 列（+流量 +网络）→ xl 6 列（+到期费用）
+ *
+ * **base 必须是 1 列**：资源行里的固定宽列（标签 28 + 百分比 32 + 明细 108 + 间距 24 = 192px）
+ * 本身就比手机上的半列宽（约 143px）还宽，排成两列时右边会被直接切掉。
  *
  * 权重分配：**资源列拿最大的一份**（用户要求「左侧硬件信息再详细些」），
- * 延迟 / 网络 / 到期费用三列各压到 0.7~0.85，不再和资源平分。
+ * 延迟 / 网络 / 到期费用三列各压到 0.7~0.9，不再和资源平分。
  */
 const ROW_GRID = cn(
-  "grid items-center gap-x-4 gap-y-1",
-  "grid-cols-[minmax(0,1.5fr)_minmax(0,1.5fr)]",
+  "grid items-center gap-x-4 gap-y-1.5",
+  "grid-cols-1",
+  "sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1.5fr)]",
   "md:grid-cols-[minmax(0,1.3fr)_minmax(0,1.5fr)_minmax(0,0.9fr)]",
   "lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.5fr)_minmax(0,0.85fr)_minmax(0,0.8fr)_minmax(0,0.85fr)]",
   "xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1.5fr)_minmax(0,0.85fr)_minmax(0,0.8fr)_minmax(0,0.85fr)_minmax(0,0.7fr)]",

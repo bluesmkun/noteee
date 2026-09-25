@@ -35,7 +35,10 @@ function Tile({
   children: ReactNode
 }) {
   return (
-    <div className="rise paper relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl border p-3.5 pt-4">
+    // min-h 只在窄屏起作用：那时没有 auto-rows-fr，靠它让四张卡等高
+    // （最矮的「平均延迟」和最高的「实时网速」差 50px）。
+    // lg 起交回给 auto-rows-fr，卡片恢复按内容高度，不会平白多出空白。
+    <div className="rise paper relative flex h-full min-h-[9.5rem] flex-col overflow-hidden rounded-xl border p-3.5 pt-4 lg:min-h-0">
       <span className="tape pointer-events-none absolute -top-2 left-1/2 h-3 w-12 -translate-x-1/2 rotate-1 rounded-[1px]" />
       <div className="relative flex shrink-0 items-center gap-2 text-muted-foreground">
         <span className={cn("grid size-6 shrink-0 place-items-center rounded-[3px] border", BUBBLE[tone])}>
@@ -123,7 +126,10 @@ export function Summary({
   const spend = monthlySpend(nodes)
 
   return (
-    <div className={cn(CARD_GRID, "auto-rows-fr")}>
+    // auto-rows-fr 只在 lg 起用：那时地图钉在右侧、纵向跨两行，需要各行等高才不会「一块大一块小」。
+    // 窄屏（1~2 列）地图是整行铺满、自己占一行，一旦也开 auto-rows-fr，
+    // 地图那一行的高度（244px）会把 4 张概览卡一起拉成 244 —— 手机上一屏只看得下两张半。
+    <div className={cn(CARD_GRID, "lg:auto-rows-fr")}>
       <Tile icon={Database} label="本月流量" tone="primary">
         <div className="ink text-xl font-semibold">
           {nodes.length > 0 ? bytes(monthTotal) : "—"}

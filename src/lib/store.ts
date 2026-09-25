@@ -1,13 +1,18 @@
 import { useEffect, useRef, useState } from "react"
 
-function read<T extends string>(key: string, fallback: T, valid: readonly T[]): T {
+/** 读一个已存的偏好：没存过、读不到或值不合法都返回 null */
+export function readStored<T extends string>(key: string, valid: readonly T[]): T | null {
   let raw: string | null = null
   try {
     raw = localStorage.getItem(key)
   } catch {
     raw = null
   }
-  return raw && (valid as readonly string[]).includes(raw) ? (raw as T) : fallback
+  return raw && (valid as readonly string[]).includes(raw) ? (raw as T) : null
+}
+
+function read<T extends string>(key: string, fallback: T, valid: readonly T[]): T {
+  return readStored(key, valid) ?? fallback
 }
 
 function save(key: string, value: string) {

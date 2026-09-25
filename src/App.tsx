@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react"
-import { Activity, Moon, Pin, SearchX, Sun, Wrench } from "lucide-react"
+import { Activity, Pin, SearchX, Wrench } from "lucide-react"
 
+import { Appearance } from "@/components/Appearance"
 import { NodeCard } from "@/components/NodeCard"
 import { CARD_GRID, CountryLabel } from "@/components/Bits"
 import { NodeRow } from "@/components/NodeRow"
@@ -10,8 +11,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api, useLatency, useNodes, type Me, type Node } from "@/lib/api"
-import { hasStored, useStoredState } from "@/lib/store"
-import { DEFAULTS, loadConfig, VERSION, type ThemeConfig } from "@/lib/theme"
+import { hasStored, readStored, useStoredState } from "@/lib/store"
+import { DEFAULTS, loadConfig, PAPERS, VERSION, type Paper, type ThemeConfig } from "@/lib/theme"
 import {
   GROUP_KEYS,
   groupNodes,
@@ -58,7 +59,7 @@ function useTheme() {
     document.documentElement.classList.toggle("dark", dark)
     localStorage.setItem("theme", dark ? "dark" : "light")
   }, [dark])
-  return [dark, () => setDark((d) => !d)] as const
+  return [dark, setDark] as const
 }
 
 /** 站点设置和 /api/me、/api/nodes 并行取，不排在它们后面 */
@@ -76,10 +77,34 @@ function useConfig(): [ThemeConfig, boolean] {
       active = false
     }
   }, [])
-  useEffect(() => {
-    document.documentElement.dataset.paper = config.paper
-  }, [config.paper])
   return [config, loaded]
+}
+
+/**
+ * 纸张色调。站点设置里定的是默认值，访客在工具栏上选过之后以访客为准。
+ *
+ * 这里刻意不用 `useStoredState`：那个 hook 只要值一变就落盘，而「站点默认值生效」
+ * 也是一次变化 —— 于是默认值被钉进 localStorage，站长以后改默认值就再也推不下去。
+ * 只有访客真的点了色块才写盘。
+ */
+function usePaper(config: ThemeConfig) {
+  const [chosen, setChosen] = useState<Paper | null>(() => readStored("noteee.paper", PAPERS))
+  const paper = chosen ?? config.paper
+
+  useEffect(() => {
+    document.documentElement.dataset.paper = paper
+  }, [paper])
+
+  const choose = useCallback((value: Paper) => {
+    setChosen(value)
+    try {
+      localStorage.setItem("noteee.paper", value)
+    } catch {
+      // 隐私模式下写不了，但本次会话里照样生效
+    }
+  }, [])
+
+  return [paper, choose] as const
 }
 
 /** 公告按纯文本渲染（React 默认转义），不交给 innerHTML */
@@ -145,7 +170,7 @@ function GroupHeader({ group }: { group: Group }) {  const online = group.nodes.
 }
 
 export default function App() {
-  const [dark, toggleTheme] = useTheme()
+  const [dark, setDark] = useTheme()
   const [config, configLoaded] = useConfig()
   const [me, setMe] = useState<Me | null>(null)
   const [meError, setMeError] = useState("")
@@ -156,6 +181,7 @@ export default function App() {
   const [view, setView] = useStoredState("noteee.view", "grid", VIEW_MODES)
   const [group, setGroup] = useStoredState("noteee.group", "none", GROUP_KEYS)
   const [sort, setSort] = useStoredState("noteee.sort", "default", SORT_KEYS)
+  const [paper, choosePaper] = usePaper(config)
   const [query, setQuery] = useState("")
 
   const loadMe = useCallback(
@@ -244,13 +270,7 @@ export default function App() {
               <Wrench className="size-3.5 text-primary" />
               <span>{me.authed ? "进入后台" : "登录"}</span>
             </a>
-            <button
-              onClick={toggleTheme}
-              title="切换主题"
-              className="paper-sm press grid size-8 shrink-0 place-items-center rounded-md border text-foreground/80 transition-colors hover:text-foreground"
-            >
-              {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-            </button>
+            <Appearance dark={dark} onDark={setDark} paper={paper} onPaper={choosePaper} />
           </div>
         </div>
       </header>

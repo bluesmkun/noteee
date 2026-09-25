@@ -9,7 +9,7 @@ type Field = {
   key: string
   type: string
   default: unknown
-  options?: { value: string }[]
+  options?: { value: string; label?: string }[]
   min?: number
   max?: number
 }
@@ -41,6 +41,16 @@ export const VERSION = manifest.version
 
 export type Paper = "cream" | "mint" | "kraft"
 export type Layout = "grid" | "list"
+
+/**
+ * 纸张色调的取值与中文名都从 theme.json 读，不在代码里再抄一遍 ——
+ * 主界面上那个切换器和面板里的「主题设置」因此永远是同一份定义。
+ */
+export const PAPER_OPTIONS = (fields.find((field) => field.key === "paper")?.options ?? []) as {
+  value: Paper
+  label: string
+}[]
+export const PAPERS = PAPER_OPTIONS.map((option) => option.value)
 
 export type ThemeConfig = {
   notice: string

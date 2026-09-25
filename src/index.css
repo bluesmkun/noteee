@@ -24,6 +24,12 @@
   --card-l: 0.972;
   --card-c: 0.02;
 
+  /* 纸张色调切换器上的三个色块。色值就是下面三组纸色本身，
+     放在这里是为了让色块自动跟着深浅色走，不用在 TS 里再抄一遍 */
+  --paper-swatch-cream: oklch(0.945 0.028 88);
+  --paper-swatch-mint: oklch(0.955 0.024 172);
+  --paper-swatch-kraft: oklch(0.915 0.038 76);
+
   --background: oklch(var(--paper-l) var(--paper-c) var(--paper-h));
   --foreground: oklch(0.3 0.022 150); /* 墨水不是纯黑，护眼 */
   --card: oklch(var(--card-l) var(--card-c) var(--paper-h));
@@ -31,17 +37,21 @@
   --popover: oklch(calc(var(--card-l) + 0.012) var(--card-c) var(--paper-h));
   --popover-foreground: oklch(0.3 0.022 150);
   --primary: oklch(0.45 0.075 158); /* 墨绿 */
-  --primary-foreground: oklch(0.98 0.012 92);
-  --secondary: oklch(0.915 0.024 86);
+  --primary-foreground: oklch(0.98 0.012 var(--paper-h));
+
+  /* —— 纸面派生的中性色，色相一律跟着 --paper-h 走 ——
+     以前这里写死 86 / 84 / 78 这类暖黄：换到淡青格纸时，按钮、搜索框、
+     到期/续费那些格子的底色还是黄的，和纸底直接打架。 */
+  --secondary: oklch(0.915 0.024 var(--paper-h));
   --secondary-foreground: oklch(0.36 0.035 150);
-  --muted: oklch(0.918 0.022 86);
-  --muted-foreground: oklch(0.545 0.032 78); /* 棕灰，不是灰 */
-  --accent: oklch(0.9 0.03 92);
+  --muted: oklch(0.918 0.022 var(--paper-h));
+  --muted-foreground: oklch(0.545 0.032 var(--paper-h));
+  --accent: oklch(0.9 0.03 var(--paper-h));
   --accent-foreground: oklch(0.34 0.04 150);
   --destructive: oklch(0.52 0.15 28); /* 印章红 */
-  --destructive-foreground: oklch(0.98 0.012 92);
-  --border: oklch(0.855 0.032 84);
-  --input: oklch(0.855 0.032 84);
+  --destructive-foreground: oklch(0.98 0.012 var(--paper-h));
+  --border: oklch(0.855 0.032 var(--paper-h));
+  --input: oklch(0.855 0.032 var(--paper-h));
   --ring: oklch(0.55 0.08 158);
   --ok: oklch(0.53 0.1 158);
   --warn: oklch(0.62 0.12 68);
@@ -65,22 +75,22 @@
   --heat-warn: oklch(0.83 0.095 95);
   --heat-hot: oklch(0.765 0.105 55);
   --heat-bad: oklch(0.685 0.13 28);
-  --heat-muted: oklch(0.912 0.018 86);
+  --heat-muted: oklch(0.912 0.018 var(--paper-h));
 
   /* 纸卡的投影**一律硬边（模糊半径 0）**。
      高斯模糊是「玻璃拟物」的语言；纸是硬的，投影就该是一条实边 ——
      像一张纸片压在另一张纸上，而不是悬空打光。 */
-  --edge: oklch(0.45 0.04 80 / 0.26); /* 纸片叠影 */
-  --edge-strong: oklch(0.45 0.04 80 / 0.38);
+  --edge: oklch(0.45 0.04 var(--paper-h) / 0.26); /* 纸片叠影 */
+  --edge-strong: oklch(0.45 0.04 var(--paper-h) / 0.38);
   --sh-paper: inset 0 1px 0 0 oklch(1 0 0 / 0.55), 0 2px 0 0 var(--edge);
   --sh-paper-sm: inset 0 1px 0 0 oklch(1 0 0 / 0.5), 0 1px 0 0 var(--edge);
   --sh-paper-hover: inset 0 1px 0 0 oklch(1 0 0 / 0.55), 0 3px 0 0 var(--edge-strong);
   --sh-slot: inset 0 1px 0 0 oklch(0.5 0.04 80 / 0.15);
-  --rule: oklch(0.855 0.032 84 / 0.55); /* 格线 */
+  --rule: oklch(0.855 0.032 var(--paper-h) / 0.55); /* 格线 */
   --margin-red: oklch(0.62 0.14 28 / 0.5); /* 装订边线 */
-  --tape-1: oklch(0.93 0.045 92 / 0.88);
-  --tape-2: oklch(0.87 0.055 82 / 0.82);
-  --tape-edge: oklch(0.78 0.05 78 / 0.55);
+  --tape-1: oklch(0.93 0.045 var(--paper-h) / 0.88);
+  --tape-2: oklch(0.87 0.055 var(--paper-h) / 0.82);
+  --tape-edge: oklch(0.78 0.05 var(--paper-h) / 0.55);
 }
 
 /* —— 纸张色调：站点级设置，只改这几个数 —— */
@@ -108,24 +118,30 @@
   --card-l: 0.243;
   --card-c: 0.021;
 
+  /* 深色下三张纸本身都很暗、色相差异肉眼分不出，
+     色块稍微提一点彩度（比真纸夸张一档），只为让人能辨认，不代表最终纸色 */
+  --paper-swatch-cream: oklch(0.235 0.028 158);
+  --paper-swatch-mint: oklch(0.245 0.05 196);
+  --paper-swatch-kraft: oklch(0.24 0.055 58);
+
   --background: oklch(var(--paper-l) var(--paper-c) var(--paper-h));
-  --foreground: oklch(0.905 0.016 92);
+  --foreground: oklch(0.905 0.016 var(--paper-h));
   --card: oklch(var(--card-l) var(--card-c) var(--paper-h));
-  --card-foreground: oklch(0.905 0.016 92);
+  --card-foreground: oklch(0.905 0.016 var(--paper-h));
   --popover: oklch(calc(var(--card-l) + 0.028) var(--card-c) var(--paper-h));
-  --popover-foreground: oklch(0.905 0.016 92);
+  --popover-foreground: oklch(0.905 0.016 var(--paper-h));
   --primary: oklch(0.73 0.09 158);
   --primary-foreground: oklch(0.19 0.02 158);
-  --secondary: oklch(0.29 0.022 158);
-  --secondary-foreground: oklch(0.92 0.014 92);
-  --muted: oklch(0.285 0.022 158);
-  --muted-foreground: oklch(0.71 0.028 92);
-  --accent: oklch(0.32 0.03 152);
-  --accent-foreground: oklch(0.94 0.014 92);
+  --secondary: oklch(0.29 0.022 var(--paper-h));
+  --secondary-foreground: oklch(0.92 0.014 var(--paper-h));
+  --muted: oklch(0.285 0.022 var(--paper-h));
+  --muted-foreground: oklch(0.71 0.028 var(--paper-h));
+  --accent: oklch(0.32 0.03 var(--paper-h));
+  --accent-foreground: oklch(0.94 0.014 var(--paper-h));
   --destructive: oklch(0.66 0.14 30);
   --destructive-foreground: oklch(0.19 0.02 30);
-  --border: oklch(0.87 0.02 120 / 14%);
-  --input: oklch(0.87 0.02 120 / 18%);
+  --border: oklch(0.87 0.02 var(--paper-h) / 14%);
+  --input: oklch(0.87 0.02 var(--paper-h) / 18%);
   --ring: oklch(0.6 0.08 158);
   --ok: oklch(0.72 0.1 158);
   --warn: oklch(0.78 0.12 72);
@@ -147,36 +163,38 @@
   --heat-warn: oklch(0.58 0.082 95);
   --heat-hot: oklch(0.56 0.092 55);
   --heat-bad: oklch(0.5 0.11 28);
-  --heat-muted: oklch(0.3 0.014 158);
+  --heat-muted: oklch(0.3 0.014 var(--paper-h));
 
   /* 深色下同样是硬边投影 */
-  --edge: oklch(0.06 0.01 158 / 0.6);
-  --edge-strong: oklch(0.06 0.01 158 / 0.78);
+  --edge: oklch(0.06 0.01 var(--paper-h) / 0.6);
+  --edge-strong: oklch(0.06 0.01 var(--paper-h) / 0.78);
   --sh-paper: inset 0 1px 0 0 oklch(1 0 0 / 0.045), 0 2px 0 0 var(--edge);
   --sh-paper-sm: inset 0 1px 0 0 oklch(1 0 0 / 0.04), 0 1px 0 0 var(--edge);
   --sh-paper-hover: inset 0 1px 0 0 oklch(1 0 0 / 0.045), 0 3px 0 0 var(--edge-strong);
   --sh-slot: inset 0 1px 0 0 oklch(0.04 0.01 158 / 0.6);
-  --rule: oklch(0.8 0.02 120 / 0.11);
+  --rule: oklch(0.8 0.02 var(--paper-h) / 0.11);
   --margin-red: oklch(0.7 0.13 30 / 0.35);
-  --tape-1: oklch(0.6 0.05 92 / 0.5);
-  --tape-2: oklch(0.5 0.055 82 / 0.45);
-  --tape-edge: oklch(0.72 0.04 82 / 0.35);
+  --tape-1: oklch(0.6 0.05 var(--paper-h) / 0.5);
+  --tape-2: oklch(0.5 0.055 var(--paper-h) / 0.45);
+  --tape-edge: oklch(0.72 0.04 var(--paper-h) / 0.35);
 }
 
 .dark[data-paper="mint"] {
-  --paper-l: 0.207;
-  --paper-c: 0.02;
-  --paper-h: 176;
-  --card-l: 0.25;
-  --card-c: 0.02;
+  /* 墨青：比「米黄」的墨绿明显偏冷。深色下明度低，彩度得比浅色那套高一档，
+     否则色相根本看不出来，三张纸在深色下会长得一模一样 */
+  --paper-l: 0.212;
+  --paper-c: 0.042;
+  --paper-h: 196;
+  --card-l: 0.256;
+  --card-c: 0.04;
 }
 
 .dark[data-paper="kraft"] {
-  --paper-l: 0.198;
-  --paper-c: 0.024;
-  --paper-h: 68;
-  --card-l: 0.24;
-  --card-c: 0.026;
+  --paper-l: 0.207;
+  --paper-c: 0.046;
+  --paper-h: 58;
+  --card-l: 0.25;
+  --card-c: 0.042;
 }
 
 @theme inline {

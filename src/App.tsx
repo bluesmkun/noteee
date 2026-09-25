@@ -118,15 +118,15 @@ function Notice({ text }: { text: string }) {
   )
 }
 
-/** 页脚：本子最后一行的「页脚注」。虚线分隔 + 等宽小字，跟正文的纸感一致 */
+/** 页脚：本子最后一行的「页脚注」。与其他区块一样是一张纸卡，左边依次排开 */
 function Footer({ nodes, updatedAt }: { nodes: Node[] | null; updatedAt: number | null }) {
   const list = nodes ?? []
   const online = list.filter((n) => statusOf(n) === "online").length
   const offline = list.filter((n) => statusOf(n) === "offline").length
   const pending = list.filter((n) => statusOf(n) === "pending").length
   return (
-    <footer className="mx-auto max-w-[1500px] px-4 pb-7 sm:px-6">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-dashed border-border pt-3 text-[11px] text-muted-foreground">
+    <footer className="mx-auto max-w-[1500px] px-4 pb-6 sm:px-6">
+      <div className="paper flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border px-3.5 py-3 text-[11px] text-muted-foreground">
         <span className="label-caps text-[10px] text-foreground/70">noteee</span>
         <span className="ink">v{VERSION}</span>
         <span className="ink">

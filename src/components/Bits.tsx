@@ -3,6 +3,7 @@ import { Activity } from "lucide-react"
 
 import { Badge, type BadgeVariant } from "@/components/ui/badge"
 import { HOUR_BUCKETS, type Latency, type LatencyHour, type Node, type ProbeStat } from "@/lib/api"
+import { OS_ICONS, osSlug, osVersion } from "@/lib/os-icons"
 import {
   countryName,
   CYCLES,
@@ -21,6 +22,14 @@ import { cn } from "@/lib/utils"
 import { statusOf } from "@/lib/view"
 
 export type IconType = ComponentType<{ className?: string }>
+
+/**
+ * 概览卡与节点卡**共用同一个栅格**：同一个 template、同一个 gap、同一个容器宽度，
+ * 所以上下两组卡片的列边界严格对齐，不会「上面 4 列、下面 3 列」地错开。
+ * 列数是写死的四档（1/2/3/4），不做成可配置——概览卡里地图要钉在最后一列并纵向跨两行，
+ * 列数一变就会在最后一行留个洞。对齐优先于可调。
+ */
+export const CARD_GRID = "grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
 
 export const TONE_TEXT: Record<Tone, string> = {
   ok: "text-ok",
@@ -161,8 +170,119 @@ export function CountryLabel({ code, name = false, className }: { code: string; 
   )
 }
 
-/** 纸上的小格：卡片里的信息条都用它，像本子上画的一行表格 */
-export function Slot({
+/** 系统版本用发行版图标表示：Debian 的旋涡、Ubuntu 的圆环、Windows 的四格一眼可辨。
+ *  图标走 currentColor，深浅色都跟着主题走；文字只留版本号，完整串放 title。
+ *  认不出发行版时退回原来的纯文字，不要硬套一个别的图标。 */
+export function OsLabel({
+  os,
+  withName = false,
+  className,
+}: {
+  os?: string | null
+  withName?: boolean
+  className?: string
+}) {
+  if (!os) return null
+  const slug = osSlug(os)
+  if (!slug) {
+    return (
+      <span className={cn("min-w-0 truncate", className)} title={os}>
+        {os}
+      </span>
+    )
+  }
+  const version = osVersion(os)
+  return (
+    <span className={cn("inline-flex min-w-0 items-center gap-1", className)} title={os}>
+      <svg viewBox="0 0 24 24" aria-hidden className="size-3.5 shrink-0 fill-current">
+        <path d={OS_ICONS[slug]} />
+      </svg>
+      {withName && <span className="shrink-0">{OS_LABEL[slug] ?? ""}</span>}
+      {version && <span className="min-w-0 truncate">{version}</span>}
+    </span>
+  )
+}
+
+const OS_LABEL: Record<string, string> = {
+  debian: "Debian",
+  ubuntu: "Ubuntu",
+  centos: "CentOS",
+  redhat: "RHEL",
+  fedora: "Fedora",
+  rockylinux: "Rocky",
+  almalinux: "AlmaLinux",
+  archlinux: "Arch",
+  alpinelinux: "Alpine",
+  opensuse: "openSUSE",
+  gentoo: "Gentoo",
+  nixos: "NixOS",
+  linuxmint: "Mint",
+  manjaro: "Manjaro",
+  zorin: "Zorin",
+  deepin: "Deepin",
+  raspberrypi: "Raspberry Pi",
+  linux: "Linux",
+  freebsd: "FreeBSD",
+  openwrt: "OpenWrt",
+  proxmox: "Proxmox",
+  synology: "DSM",
+  unraid: "Unraid",
+  truenas: "TrueNAS",
+  windows: "Windows",
+}
+
+/** 资源一行：标签 + 刻度轨道 + 百分比 + 明细（核数 / 负载 / 真实用量）。
+ *  列表视图用。进度条走 `transform: scaleX()` 而不是 `width`：
+ *  改宽度会触发布局，改 transform 只走合成层。 */
+export function MeterRow({
+  label,
+  pct,
+  tone,
+  detail,
+  className,
+}: {
+  label: string
+  pct: number | null
+  tone: BarTone
+  detail?: string
+  className?: string
+}) {
+  const filled = pct === null ? 0 : Math.min(100, Math.max(0, pct))
+  const danger = pct !== null && filled >= 90
+  const warn = pct !== null && filled >= 75 && !danger
+  return (
+    <div className={cn("flex items-center gap-2", className)}>
+      <span className="w-7 shrink-0 text-[10px] text-muted-foreground">{label}</span>
+      <span className="track h-1.5 min-w-0 flex-1 overflow-hidden rounded-[2px] border">
+        <span
+          className={cn(
+            "block h-full origin-left transition-transform duration-700",
+            danger ? "bar-danger" : BAR_TONE[tone],
+          )}
+          style={{ transform: `scaleX(${filled / 100})` }}
+        />
+      </span>
+      <span
+        className={cn(
+          "ink w-8 shrink-0 text-right text-[10px]",
+          danger ? "font-semibold text-destructive" : warn ? "text-warn" : "text-foreground/85",
+        )}
+      >
+        {pct === null ? "—" : `${filled.toFixed(0)}%`}
+      </span>
+      {detail !== undefined && (
+        <span
+          className="ink w-[6.75rem] shrink-0 truncate text-right text-[10px] text-muted-foreground"
+          title={detail}
+        >
+          {detail}
+        </span>
+      )}
+    </div>
+  )
+}
+
+/** 纸上的小格：卡片里的信息条都用它，像本子上画的一行表格 */export function Slot({
   children,
   className,
   title,
@@ -452,37 +572,6 @@ export function Stat({
         <div className="ink truncate text-base font-semibold">{value}</div>
         {sub && <div className="ink truncate text-[11px] text-muted-foreground">{sub}</div>}
       </div>
-    </div>
-  )
-}
-
-export function MiniBar({
-  label,
-  pct,
-  tone,
-  value,
-  className,
-}: {
-  label: string
-  pct: number | null
-  tone: BarTone
-  value: string
-  className?: string
-}) {
-  const filled = pct === null ? 0 : Math.min(100, Math.max(0, pct))
-  const danger = pct !== null && filled >= 90
-  return (
-    <div className={cn("flex shrink-0 items-center gap-2", className)}>
-      <span className="w-7 shrink-0 text-[11px] text-muted-foreground">{label}</span>
-      <span className="track h-2 w-12 overflow-hidden rounded-[2px] border">
-        <span
-          className={cn("block h-full transition-[width] duration-700", danger ? "bar-danger" : BAR_TONE[tone])}
-          style={{ width: `${filled}%` }}
-        />
-      </span>
-      <span className={cn("ink w-9 shrink-0 text-right text-xs", danger && "font-semibold text-destructive")}>
-        {value}
-      </span>
     </div>
   )
 }

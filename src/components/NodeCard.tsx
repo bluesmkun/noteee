@@ -14,6 +14,7 @@ import {
   CountryLabel,
   ExpiryText,
   LatencyPanel,
+  OsLabel,
   PriceText,
   SectionTitle,
   Slot,
@@ -22,9 +23,9 @@ import {
 import { Meter } from "@/components/Meter"
 import { Card } from "@/components/ui/card"
 import type { Latency, Node } from "@/lib/api"
-import { bytes, daysUntil, expiryRisk, FOREVER, osName, pair, percent, rate, type ExpiryRisk } from "@/lib/format"
+import { bytes, daysUntil, expiryRisk, FOREVER, pair, percent, rate, type ExpiryRisk } from "@/lib/format"
 import { cn } from "@/lib/utils"
-import { deployed, monthUsage, statusOf } from "@/lib/view"
+import { deployed, monthUsage } from "@/lib/view"
 
 /** 到期风险只体现在文字颜色上，格子底色保持固定，避免一张卡里出现太多色块 */
 const RISK_TEXT: Record<Exclude<ExpiryRisk, "none">, string> = {
@@ -46,15 +47,13 @@ export function NodeCard({
   showCost?: boolean
 }) {
   const m = node.metrics
-  const status = statusOf(node)
   const used = monthUsage(node)
   const trafficPct = node.traffic_limit > 0 ? percent(used, node.traffic_limit) : null
   const risk = expiryRisk(daysUntil(node.expires_at))
   const serial = String((node.sort ?? 0) + 1).padStart(2, "0")
 
-  const meta = node.os
-    ? [osName(node.os), node.virt && node.virt !== "none" ? node.virt : "", node.arch].filter(Boolean).join(" · ")
-    : "等待首次上报"
+  // 发行版已经由图标表达，这里只留架构与虚拟化
+  const extra = [node.virt && node.virt !== "none" ? node.virt : "", node.arch].filter(Boolean).join(" · ")
 
   return (
     <Card
@@ -66,28 +65,29 @@ export function NodeCard({
     >
       {/* 贴在纸上的胶带 */}
       <span className="tape pointer-events-none absolute -top-2 left-6 h-3.5 w-14 -rotate-2 rounded-[1px]" />
-      <span
-        className={cn(
-          "pointer-events-none absolute -top-16 -right-12 size-40 rounded-full blur-3xl",
-          status === "online" ? "bg-ok/10" : status === "offline" ? "bg-destructive/10" : "bg-muted/40",
-        )}
-      />
 
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-baseline gap-1.5">
-            <span className="ink shrink-0 text-[10px] text-muted-foreground/70">{serial}</span>
-            <h3 className="serif line-clamp-2 text-[15px] font-semibold break-words" title={node.name}>
-              {node.name}
-            </h3>
-          </div>
-          <p className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
-            <CountryLabel code={node.country} name className="min-w-0 shrink-0" />
-            <span className="min-w-0 truncate">{meta}</span>
-          </p>
+        <div className="flex min-w-0 items-baseline gap-1.5">
+          <span className="ink shrink-0 text-[10px] text-muted-foreground/70">{serial}</span>
+          <h3 className="serif line-clamp-2 text-[15px] font-semibold break-words" title={node.name}>
+            {node.name}
+          </h3>
         </div>
         <StatusPill node={node} className="shrink-0" />
       </div>
+
+      {/* meta 行单独占一整行。挤在状态章旁边时它只剩 180px 左右，
+          OsLabel 会被压到 0 宽，而里面那个 shrink-0 的发行版图标照样画出来，
+          于是压在后面的「kvm · x86_64」上 —— 这就是「文字和图标重叠」的来源。 */}
+      <p className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+        <CountryLabel code={node.country} name className="shrink-0" />
+        {node.os ? (
+          <OsLabel os={node.os} className="shrink-0" />
+        ) : (
+          <span className="shrink-0">等待首次上报</span>
+        )}
+        {extra && <span className="min-w-0 truncate">{extra}</span>}
+      </p>
 
       {deployed(node) ? (
         <>

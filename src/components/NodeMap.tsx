@@ -121,7 +121,8 @@ export function NodeMap({
           ))}
         </span>
       </div>
-      <div className="relative mt-2 min-h-36 flex-1 lg:min-h-60">
+      {/* min-h 别调大：左侧概览卡要跟着这张卡拉满，地图越高概览卡里空得越多 */}
+      <div className="relative mt-2 min-h-36 flex-1 lg:min-h-40">
         <svg
           viewBox="0 0 360 144"
           preserveAspectRatio="xMidYMid meet"

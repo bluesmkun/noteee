@@ -1,18 +1,27 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties } from "react"
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react"
 import { Activity, Moon, Pin, SearchX, Sun, Wrench } from "lucide-react"
 
 import { NodeCard } from "@/components/NodeCard"
-import { CountryLabel } from "@/components/Bits"
+import { CARD_GRID, CountryLabel } from "@/components/Bits"
 import { NodeRow } from "@/components/NodeRow"
 import { Summary } from "@/components/Summary"
 import { Toolbar } from "@/components/Toolbar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { api, useLatency, useNodes, type Me } from "@/lib/api"
+import { api, useLatency, useNodes, type Me, type Node } from "@/lib/api"
 import { hasStored, useStoredState } from "@/lib/store"
-import { DEFAULTS, loadConfig, type ThemeConfig } from "@/lib/theme"
-import { GROUP_KEYS, groupNodes, searchNodes, sortNodes, SORT_KEYS, VIEW_MODES, type Group } from "@/lib/view"
+import { DEFAULTS, loadConfig, VERSION, type ThemeConfig } from "@/lib/theme"
+import {
+  GROUP_KEYS,
+  groupNodes,
+  searchNodes,
+  sortNodes,
+  SORT_KEYS,
+  statusOf,
+  VIEW_MODES,
+  type Group,
+} from "@/lib/view"
 
 const loadDetail = () => import("@/components/NodeDetail").then((m) => ({ default: m.NodeDetail }))
 const NodeDetail = lazy(loadDetail)
@@ -84,8 +93,40 @@ function Notice({ text }: { text: string }) {
   )
 }
 
-function GroupHeader({ group }: { group: Group }) {
-  const online = group.nodes.filter((n) => n.online).length
+/** 页脚：本子最后一行的「页脚注」。虚线分隔 + 等宽小字，跟正文的纸感一致 */
+function Footer({ nodes, updatedAt }: { nodes: Node[] | null; updatedAt: number | null }) {
+  const list = nodes ?? []
+  const online = list.filter((n) => statusOf(n) === "online").length
+  const offline = list.filter((n) => statusOf(n) === "offline").length
+  const pending = list.filter((n) => statusOf(n) === "pending").length
+  return (
+    <footer className="mx-auto max-w-[1500px] px-4 pb-7 sm:px-6">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-dashed border-border pt-3 text-[11px] text-muted-foreground">
+        <span className="label-caps text-[10px] text-foreground/70">noteee</span>
+        <span className="ink">v{VERSION}</span>
+        <span className="hidden h-px flex-1 border-t border-dashed border-border/70 sm:block" />
+        <span className="ink">
+          共 {list.length} 个节点 · {online} 在线
+          {offline > 0 && ` · ${offline} 离线`}
+          {pending > 0 && ` · ${pending} 未接入`}
+        </span>
+        <span className="ink">
+          最后更新 {updatedAt === null ? "—" : new Date(updatedAt).toLocaleTimeString("zh-CN", { hour12: false })}
+        </span>
+        <a
+          href="https://github.com/bluesmkun/noteee"
+          target="_blank"
+          rel="noreferrer"
+          className="underline decoration-dotted underline-offset-2 transition-colors hover:text-foreground"
+        >
+          主题源码
+        </a>
+      </div>
+    </footer>
+  )
+}
+
+function GroupHeader({ group }: { group: Group }) {  const online = group.nodes.filter((n) => n.online).length
   return (
     <div className="flex items-center gap-2 px-1 pt-1">
       {group.code ? (
@@ -108,7 +149,7 @@ export default function App() {
   const [config, configLoaded] = useConfig()
   const [me, setMe] = useState<Me | null>(null)
   const [meError, setMeError] = useState("")
-  const { nodes, error, closed } = useNodes()
+  const { nodes, error, closed, updatedAt } = useNodes()
   const latency = useLatency(nodes)
   const [open, go] = useNodeRoute()
 
@@ -177,7 +218,9 @@ export default function App() {
 
   return (
     <div className="min-h-svh">
-      <header className="sticky top-0 z-20 border-b border-border/80 bg-background/80 backdrop-blur-[6px]">
+      {/* 吸顶栏不用 backdrop-blur：它每帧都要重新采样并模糊身后的内容，
+          是全站最贵的一处绘制。改成 95% 不透明的纸色，观感几乎一样 */}
+      <header className="sticky top-0 z-20 border-b border-border/80 bg-background/95">
         <div className="mx-auto flex max-w-[1500px] items-center gap-3 px-4 py-3 sm:px-6">
           <button className="flex items-center gap-2.5 transition-opacity hover:opacity-80" onClick={() => go(null)}>
             <span className="paper-sm relative grid size-8 shrink-0 place-items-center overflow-hidden rounded-[4px] border text-primary">
@@ -242,7 +285,7 @@ export default function App() {
             </p>
           )
         ) : !nodes ? (
-          <div className="card-grid grid gap-3" style={{ "--card-min": "320px" } as CSSProperties}>
+          <div className={CARD_GRID}>
             {[0, 1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-72" />
             ))}
@@ -283,10 +326,7 @@ export default function App() {
                 <section key={groupItem.key} className="space-y-3">
                   {groupItem.label && <GroupHeader group={groupItem} />}
                   {view === "grid" ? (
-                    <div
-                      className="card-grid grid gap-3"
-                      style={{ "--card-min": `${config.card_min}px` } as CSSProperties}
-                    >
+                    <div className={CARD_GRID}>
                       {groupItem.nodes.map((node) => (
                         <NodeCard
                           key={node.id}
@@ -318,6 +358,8 @@ export default function App() {
           </>
         )}
       </main>
+
+      <Footer nodes={nodes} updatedAt={updatedAt} />
     </div>
   )
 }

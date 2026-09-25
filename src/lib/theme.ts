@@ -37,6 +37,7 @@ function fits(field: Field, value: unknown): boolean {
 export const fields = (manifest.config as Field[]).filter((field) => field.type !== "title")
 
 export const SHORT = manifest.short
+export const VERSION = manifest.version
 
 export type Paper = "cream" | "mint" | "kraft"
 export type Layout = "grid" | "list"
@@ -45,7 +46,6 @@ export type ThemeConfig = {
   notice: string
   layout: Layout
   paper: Paper
-  card_min: number
   show_map: boolean
   show_latency: boolean
   show_cost: boolean

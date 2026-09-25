@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "test": "node src/lib/format.test.ts && node src/lib/api.test.ts && node src/lib/view.test.ts && node src/lib/geo.test.ts",
+    "test": "node src/lib/format.test.ts && node src/lib/api.test.ts && node src/lib/view.test.ts && node src/lib/geo.test.ts && node src/lib/os-icons.test.ts",
     "preview": "vite preview"
   },
   "dependencies": {

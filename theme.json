@@ -6,7 +6,10 @@
   "author": "bluesmkun",
   "url": "https://github.com/bluesmkun/noteee",
   "config": [
-    { "type": "title", "label": "页面" },
+    {
+      "type": "title",
+      "label": "页面"
+    },
     {
       "key": "notice",
       "type": "text",
@@ -20,35 +23,57 @@
       "label": "默认视图",
       "default": "grid",
       "options": [
-        { "value": "grid", "label": "卡片" },
-        { "value": "list", "label": "列表" }
+        {
+          "value": "grid",
+          "label": "卡片"
+        },
+        {
+          "value": "list",
+          "label": "列表"
+        }
       ],
       "help": "访客自己切换过的，以访客的选择为准"
     },
-    { "type": "title", "label": "护眼与排版" },
+    {
+      "type": "title",
+      "label": "护眼与排版"
+    },
     {
       "key": "paper",
       "type": "select",
       "label": "纸张色调",
       "default": "cream",
       "options": [
-        { "value": "cream", "label": "米黄（护眼）" },
-        { "value": "mint", "label": "淡青格纸" },
-        { "value": "kraft", "label": "牛皮纸" }
+        {
+          "value": "cream",
+          "label": "米黄（护眼）"
+        },
+        {
+          "value": "mint",
+          "label": "淡青格纸"
+        },
+        {
+          "value": "kraft",
+          "label": "牛皮纸"
+        }
       ]
     },
     {
-      "key": "card_min",
-      "type": "number",
-      "label": "卡片最小宽度",
-      "default": 320,
-      "min": 240,
-      "max": 560,
-      "help": "卡片视图里每张卡片的最小宽度（px），数值越小每行放得越多"
+      "type": "title",
+      "label": "显示内容"
     },
-    { "type": "title", "label": "显示内容" },
-    { "key": "show_map", "type": "boolean", "label": "显示节点分布地图", "default": true },
-    { "key": "show_latency", "type": "boolean", "label": "显示延迟色带", "default": true },
+    {
+      "key": "show_map",
+      "type": "boolean",
+      "label": "显示节点分布地图",
+      "default": true
+    },
+    {
+      "key": "show_latency",
+      "type": "boolean",
+      "label": "显示延迟色带",
+      "default": true
+    },
     {
       "key": "show_cost",
       "type": "boolean",

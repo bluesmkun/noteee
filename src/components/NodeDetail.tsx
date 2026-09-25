@@ -14,7 +14,7 @@ import {
   YAxis,
 } from "recharts"
 
-import { CountryLabel, latencyText, Stat, StatusPill, TONE_TEXT, type IconType } from "@/components/Bits"
+import { CountryLabel, latencyText, OsLabel, Stat, StatusPill, TONE_TEXT, type IconType } from "@/components/Bits"
 import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -80,7 +80,7 @@ const TOOLTIP_STYLE = {
 
 const PROBE_GRID = "grid-cols-[minmax(6rem,1fr)_3.5rem_3.5rem_4.5rem_3.25rem_4.5rem]"
 
-type FactRow = { label: string; value: string }
+type FactRow = { label: string; value: ReactNode; title?: string }
 type FactGroup = { label: string; icon: IconType; facts: FactRow[] }
 
 const PALETTE = [
@@ -100,10 +100,11 @@ function Panel({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
-function Tab({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
+function Tab({ active, onClick, title, children }: { active: boolean; onClick: () => void; title?: string; children: ReactNode }) {
   return (
     <button
       onClick={onClick}
+      title={title}
       className={cn(
         "rounded-[3px] px-2.5 py-1 text-xs transition",
         active ? "paper-sm font-medium text-primary" : "text-muted-foreground hover:text-foreground",
@@ -250,7 +251,7 @@ export function NodeDetail({
   const style = (id: number) => PALETTE[pingSeries.findIndex((p) => p.id === id) % PALETTE.length]
 
   const pingRows = useMemo(() => {
-    const rows = new Map<number, { ts: number } & Record<string, number | [number, number] | null>>()
+    const rows = new Map<number, { ts: number } & Record<string, number | null>>()
     for (const s of pingSeries) {
       const smoothed = despike(s.points)
       const averaged = movingAverage(smooth ? smoothed : s.points)
@@ -260,7 +261,6 @@ export function NodeDetail({
         row[`s${s.id}`] = smoothed[i].latency
         row[`m${s.id}`] = averaged[i]
         row[`l${s.id}`] = p.loss ?? 0
-        row[`b${s.id}`] = p.band ?? null
         rows.set(p.ts, row)
       })
     }
@@ -283,13 +283,26 @@ export function NodeDetail({
   const group = (label: string, icon: IconType) => {
     const facts: FactRow[] = []
     groups.push({ label, icon, facts })
-    return (name: string, value?: string | number | null) => {
-      if (value !== undefined && value !== null && value !== "") facts.push({ label: name, value: String(value) })
+    // value 可以是节点（系统那一行要放发行版图标），title 单独给，不再拿 value 当提示文字
+    return (name: string, value?: ReactNode, title?: string) => {
+      if (value === undefined || value === null || value === "") return
+      facts.push({ label: name, value, title: title ?? (typeof value === "string" ? value : undefined) })
     }
   }
 
   const hardware = group("硬件配置", Cpu)
-  hardware("系统", [osName(node.os), node.kernel].filter(Boolean).join(" · "))
+  hardware(
+    "系统",
+    node.os ? (
+      <span className="inline-flex min-w-0 items-center gap-1.5">
+        <OsLabel os={node.os} withName />
+        {node.kernel && <span className="min-w-0 truncate text-muted-foreground">{node.kernel}</span>}
+      </span>
+    ) : (
+      node.kernel || ""
+    ),
+    [node.os ? osName(node.os) : "", node.kernel].filter(Boolean).join(" · "),
+  )
   hardware("CPU", node.cpu_name ? `${cpuName(node.cpu_name)} × ${node.cpu_cores}` : node.cpu_cores > 0 ? `${node.cpu_cores} 核` : "")
   hardware("内存 / 硬盘", node.mem_total || node.disk_total ? `${bytes(node.mem_total)} / ${bytes(node.disk_total)}` : "")
   hardware("交换分区", node.swap_total > 0 ? pair(m?.swap_used ?? 0, node.swap_total) : "无")
@@ -374,24 +387,29 @@ export function NodeDetail({
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <div className="slot flex items-center gap-0.5 rounded-[4px] border p-0.5">
             {TABS.map((t) => (
-              <Tab key={t.key} active={tab === t.key} onClick={() => setTab(t.key)}>
+              <Tab key={t.key} active={tab === t.key} title={t.label} onClick={() => setTab(t.key)}>
                 {t.label}
               </Tab>
             ))}
           </div>
           <div className="slot flex items-center gap-0.5 rounded-[4px] border p-0.5">
             {RANGES_FOR[tab].map((r) => (
-              <Tab key={r.hours} active={hours === r.hours} onClick={() => setRanges((all) => ({ ...all, [tab]: r.hours }))}>
+              <Tab
+                key={r.hours}
+                active={hours === r.hours}
+                title={r.label}
+                onClick={() => setRanges((all) => ({ ...all, [tab]: r.hours }))}
+              >
                 {r.label}
               </Tab>
             ))}
           </div>
           {tab === "latency" && (
             <div className="slot flex items-center gap-0.5 rounded-[4px] border p-0.5">
-              <Tab active={smooth} onClick={() => setSmooth((v) => !v)}>
+              <Tab active={smooth} title="削峰" onClick={() => setSmooth((v) => !v)}>
                 削峰
               </Tab>
-              <Tab active={smoothLine} onClick={() => setSmoothLine((v) => !v)}>
+              <Tab active={smoothLine} title="平滑" onClick={() => setSmoothLine((v) => !v)}>
                 平滑
               </Tab>
             </div>
@@ -468,21 +486,6 @@ export function NodeDetail({
                             }}
                           />
                         )}
-                        {shownProbes.length === 1 &&
-                          shownProbes.map((s) => (
-                            <Area
-                              key={`band${s.id}`}
-                              dataKey={`b${s.id}`}
-                              type={smoothLine ? "monotone" : "linear"}
-                              stroke="none"
-                              fill={style(s.id)}
-                              fillOpacity={0.16}
-                              isAnimationActive={false}
-                              tooltipType="none"
-                              legendType="none"
-                              connectNulls
-                            />
-                          ))}
                         {shownProbes.map((s) => (
                           <Line
                             key={s.id}
@@ -559,6 +562,7 @@ export function NodeDetail({
                             e.stopPropagation()
                             setOnly(activeOnly === s.id ? null : s.id)
                           }}
+                          title={activeOnly === s.id ? "取消仅看" : "只看这一条线路"}
                           className={cn(
                             "rounded-md border px-1.5 py-0.5 text-[11px] transition",
                             activeOnly === s.id
@@ -681,7 +685,7 @@ export function NodeDetail({
                   {facts.map((fact) => (
                     <Fragment key={fact.label}>
                       <dt className="text-xs text-muted-foreground">{fact.label}</dt>
-                      <dd className="ink min-w-0 text-sm break-words" title={fact.value}>
+                      <dd className="ink min-w-0 text-sm break-words" title={fact.title}>
                         {fact.value}
                       </dd>
                     </Fragment>

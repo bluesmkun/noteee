@@ -110,6 +110,8 @@ export function useNodes() {
   const [nodes, setNodes] = useState<Node[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [closed, setClosed] = useState(false)
+  /** 最近一次收到快照的时刻，页脚用它显示「最后更新」 */
+  const [updatedAt, setUpdatedAt] = useState<number | null>(null)
 
   useEffect(() => {
     let socket: WebSocket | null = null
@@ -123,6 +125,7 @@ export function useNodes() {
       setNodes(safe)
       setError(null)
       setClosed(false)
+      setUpdatedAt(Date.now())
     }
 
     const fetchOnce = () =>
@@ -167,7 +170,7 @@ export function useNodes() {
     }
   }, [])
 
-  return { nodes, error, closed }
+  return { nodes, error, closed, updatedAt }
 }
 
 export type MetricPoint = {

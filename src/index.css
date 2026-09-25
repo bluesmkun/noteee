@@ -67,12 +67,15 @@
   --heat-bad: oklch(0.685 0.13 28);
   --heat-muted: oklch(0.912 0.018 86);
 
-  /* 纸卡：1px 描边 + 贴着桌面的浅投影，不用毛玻璃光晕 */
-  --sh-paper: 0 1px 0 oklch(1 0 0 / 0.7) inset, 0 1px 1px oklch(0.45 0.04 80 / 0.1),
-    0 8px 18px -12px oklch(0.4 0.04 80 / 0.35);
-  --sh-paper-sm: 0 1px 0 oklch(1 0 0 / 0.65) inset, 0 1px 1px oklch(0.45 0.04 80 / 0.08),
-    0 3px 8px -6px oklch(0.4 0.04 80 / 0.28);
-  --sh-slot: inset 0 1px 2px oklch(0.45 0.04 80 / 0.14);
+  /* 纸卡的投影**一律硬边（模糊半径 0）**。
+     高斯模糊是「玻璃拟物」的语言；纸是硬的，投影就该是一条实边 ——
+     像一张纸片压在另一张纸上，而不是悬空打光。 */
+  --edge: oklch(0.45 0.04 80 / 0.26); /* 纸片叠影 */
+  --edge-strong: oklch(0.45 0.04 80 / 0.38);
+  --sh-paper: inset 0 1px 0 0 oklch(1 0 0 / 0.55), 0 2px 0 0 var(--edge);
+  --sh-paper-sm: inset 0 1px 0 0 oklch(1 0 0 / 0.5), 0 1px 0 0 var(--edge);
+  --sh-paper-hover: inset 0 1px 0 0 oklch(1 0 0 / 0.55), 0 3px 0 0 var(--edge-strong);
+  --sh-slot: inset 0 1px 0 0 oklch(0.5 0.04 80 / 0.15);
   --rule: oklch(0.855 0.032 84 / 0.55); /* 格线 */
   --margin-red: oklch(0.62 0.14 28 / 0.5); /* 装订边线 */
   --tape-1: oklch(0.93 0.045 92 / 0.88);
@@ -146,11 +149,13 @@
   --heat-bad: oklch(0.5 0.11 28);
   --heat-muted: oklch(0.3 0.014 158);
 
-  --sh-paper: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 1px 1px oklch(0.05 0.01 158 / 0.5),
-    0 10px 20px -14px oklch(0.05 0.01 158 / 0.7);
-  --sh-paper-sm: 0 1px 0 oklch(1 0 0 / 0.035) inset, 0 1px 1px oklch(0.05 0.01 158 / 0.45),
-    0 4px 10px -7px oklch(0.05 0.01 158 / 0.6);
-  --sh-slot: inset 0 1px 2px oklch(0.05 0.01 158 / 0.5);
+  /* 深色下同样是硬边投影 */
+  --edge: oklch(0.06 0.01 158 / 0.6);
+  --edge-strong: oklch(0.06 0.01 158 / 0.78);
+  --sh-paper: inset 0 1px 0 0 oklch(1 0 0 / 0.045), 0 2px 0 0 var(--edge);
+  --sh-paper-sm: inset 0 1px 0 0 oklch(1 0 0 / 0.04), 0 1px 0 0 var(--edge);
+  --sh-paper-hover: inset 0 1px 0 0 oklch(1 0 0 / 0.045), 0 3px 0 0 var(--edge-strong);
+  --sh-slot: inset 0 1px 0 0 oklch(0.04 0.01 158 / 0.6);
   --rule: oklch(0.8 0.02 120 / 0.11);
   --margin-red: oklch(0.7 0.13 30 / 0.35);
   --tape-1: oklch(0.6 0.05 92 / 0.5);
@@ -376,7 +381,7 @@
     background-image: linear-gradient(170deg, var(--tape-1), var(--tape-2));
     border-left: 1px solid var(--tape-edge);
     border-right: 1px solid var(--tape-edge);
-    box-shadow: 0 1px 2px oklch(0.4 0.04 80 / 0.16);
+    box-shadow: 0 1px 0 0 var(--edge);
   }
 
   /* —— 印章：状态标签 —— */
@@ -390,54 +395,43 @@
     transform: rotate(-1.4deg);
   }
 
-  /* —— 荧光笔：只给最该被看见的数字 —— */
-  .marker {
-    background-image: linear-gradient(
-      180deg,
-      transparent 56%,
-      color-mix(in oklab, var(--primary) 24%, transparent) 56%
-    );
-    padding: 0 2px;
-  }
-
+  /* 地图亮点不描边、不发光：`drop-shadow` 也是一次高斯模糊，
+     而且要给近千个点阵算一遍。靠颜色和大小区分就够了。 */
   .map-dot {
-    filter: drop-shadow(0 0 2px currentColor);
+    filter: none;
   }
 
   .cv-card {
     content-visibility: auto;
-    /* 实测卡片高度 541px。不要加 auto 关键字，理由见 .cv-row */
-    contain-intrinsic-size: 541px;
-  }
-
-  /* 卡片视图的列数由站点设置决定：--card-min 是每张卡的最小宽度 */
-  .card-grid {
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--card-min, 320px)), 1fr));
+    /* 实测卡片高度 545px。不要加 auto 关键字，理由见 .cv-row */
+    contain-intrinsic-size: 545px;
   }
 
   .cv-row {
     content-visibility: auto;
-    /* 用固定值（实测行高 62px）：auto 会把「上次渲染的尺寸」当固定尺寸用，
+    /* 用固定值（实测行高 76px）：auto 会把「上次渲染的尺寸」当固定尺寸用，
        某次偏高之后就一直偏大，行进出视口时反复改高，既是抖动来源也多占行距 */
-    contain-intrinsic-size: 62px;
+    contain-intrinsic-size: 76px;
   }
 
   .page-turn {
     transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
   }
   .page-turn:hover {
-    box-shadow: var(--sh-paper), 0 16px 28px -22px color-mix(in oklab, var(--primary) 70%, transparent);
+    box-shadow: var(--sh-paper-hover);
     transform: translateY(-1px);
   }
 }
 
 @keyframes ping-soft {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in oklab, var(--ok) 45%, transparent);
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
   }
-  50% {
-    box-shadow: 0 0 0 5px color-mix(in oklab, var(--ok) 0%, transparent);
+  70%,
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
   }
 }
 
@@ -452,15 +446,28 @@
   }
 }
 
+/* 在线状态点的呼吸光晕。**用 transform + opacity，不要用 box-shadow**：
+   前者只走合成层，后者每一帧都要重绘这个元素（以及它所在的层）。
+   一屏十几个状态点时，这是滚动掉帧最直接的一个来源。 */
 .pulse-ok {
-  animation: ping-soft 2.4s ease-out infinite;
+  position: relative;
 }
+.pulse-ok::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--ok) 60%, transparent);
+  animation: ping-soft 2.4s ease-out infinite;
+  pointer-events: none;
+}
+
 .rise {
   animation: rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pulse-ok,
+  .pulse-ok::after,
   .rise {
     animation: none;
   }

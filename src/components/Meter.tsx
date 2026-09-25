@@ -36,8 +36,11 @@ export function Meter({ label, icon: Icon, pct, foot, empty = "—", tone = "cpu
       </div>
       <div className={cn("track mt-1.5 w-full overflow-hidden rounded-[2px] border", big ? "h-2.5" : "h-1.5")}>
         <div
-          className={cn("h-full transition-[width] duration-700", danger ? "bar-danger" : BAR_TONE[tone])}
-          style={{ width: `${filled}%` }}
+          className={cn(
+            "h-full origin-left transition-transform duration-700",
+            danger ? "bar-danger" : BAR_TONE[tone],
+          )}
+          style={{ transform: `scaleX(${filled / 100})` }}
         />
       </div>
       <div className={cn("ink mt-1 truncate text-muted-foreground", big ? "text-[10px]" : "text-[11px]")}>{foot}</div>
